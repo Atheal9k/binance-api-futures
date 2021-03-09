@@ -78,5 +78,5 @@
     "test": "mocha",
     "test-debug": "mocha --inspect-brk"
   },
-  "version": "0.1.10"
+  "version": "0.1.11"
 }
