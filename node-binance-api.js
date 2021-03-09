@@ -615,6 +615,7 @@ let api = function Binance(options = {}) {
     params.positionSide = positionSide
     params.timeInForce = "GTX" // Post only by default. Use GTC for limit orders.
     params.timestamp = new Date().getTime() + Binance.info.timeOffset
+    params.type = "MARKET"
     if (quantity) params.quantity = quantity
 
     // if in the binance futures setting Hedged mode is active, positionSide parameter is mandatory
@@ -651,6 +652,7 @@ let api = function Binance(options = {}) {
     params.closePosition = closePosition
     params.timeInForce = "GTX" // Post only by default. Use GTC for limit orders.
     params.timestamp = new Date().getTime() + Binance.info.timeOffset
+    params.type = "MARKET"
     // if in the binance futures setting Hedged mode is active, positionSide parameter is mandatory
     if (
       typeof params.positionSide === "undefined" &&
