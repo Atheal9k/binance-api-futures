@@ -638,27 +638,44 @@ let api = function Binance(options = {}) {
     })
   }
 
-  const futuresOrder = async ( side, symbol, quantity, price = false, params = {} ) => {
-    params.symbol = symbol;
-    params.side = side;
-    if ( quantity ) params.quantity = quantity;
+  const futuresOrderClose = async (
+    side,
+    positionSide,
+    symbol,
+    quantity,
+    price = false,
+    closePosition,
+    params = {}
+  ) => {
+    params.symbol = symbol
+    params.side = side
+    params.positionSide = positionSide
+    params.timeInForce = "GTX" // Post only by default. Use GTC for limit orders.
+    params.type = "MARKET"
+    params.closePosition = closePosition
+    params.timestamp = new Date().getTime()
+    if (quantity) params.quantity = quantity
+
     // if in the binance futures setting Hedged mode is active, positionSide parameter is mandatory
-    if( typeof params.positionSide === 'undefined' && Binance.options.hedgeMode ){
-        params.positionSide = side === 'BUY' ? 'LONG' : 'SHORT';
-    }
+    // if( typeof params.positionSide === 'undefined' && Binance.options.hedgeMode ){
+    //     params.positionSide = side === 'BUY' ? 'LONG' : 'SHORT';
+    // }
     // LIMIT STOP MARKET STOP_MARKET TAKE_PROFIT TAKE_PROFIT_MARKET
     // reduceOnly stopPrice
-    if ( price ) {
-        params.price = price;
-        if ( typeof params.type === 'undefined' ) params.type = 'LIMIT';
+    if (price) {
+      params.price = price
+      if (typeof params.type === "undefined") params.type = "LIMIT"
     } else {
-        if ( typeof params.type === 'undefined' ) params.type = 'MARKET';
+      if (typeof params.type === "undefined") params.type = "MARKET"
     }
-    if ( !params.timeInForce && ( params.type.includes( 'LIMIT' ) || params.type === 'STOP' || params.type === 'TAKE_PROFIT' ) ) {
-        params.timeInForce = 'GTX'; // Post only by default. Use GTC for limit orders.
-    }
-    return promiseRequest( 'v1/order', params, { base:fapi, type:'TRADE', method:'POST' } );
-};
+
+    return promiseRequest("v1/order", params, {
+      base: fapi,
+      type: "TRADE",
+      method: "POST",
+    })
+  }
+
   const deliveryOrder = async (
     side,
     symbol,
@@ -4867,8 +4884,8 @@ let api = function Binance(options = {}) {
       return futuresOrder("SELL", symbol, quantity, price, params)
     },
 
-    futuresMarketBuy: async ( symbol, quantity, params = {} ) => {
-      return futuresOrder( 'BUY', symbol, quantity, false, params );
+    futuresMarketBuy: async (symbol, quantity, params = {}) => {
+      return futuresOrder("BUY", symbol, quantity, false, params)
     },
 
     futuresMarketSell: async (symbol, quantity, params = {}) => {
