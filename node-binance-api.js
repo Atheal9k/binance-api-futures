@@ -640,26 +640,23 @@ let api = function Binance(options = {}) {
 
   const futuresOrderClose = async (
     side,
-    positionSide,
     symbol,
     quantity,
-    price = false,
     closePosition,
+    price = false,
     params = {}
   ) => {
     params.symbol = symbol
     params.side = side
-    params.positionSide = positionSide
-    params.timeInForce = "GTX" // Post only by default. Use GTC for limit orders.
-    params.type = "MARKET"
     params.closePosition = closePosition
-    params.timestamp = new Date().getTime()
     if (quantity) params.quantity = quantity
-
     // if in the binance futures setting Hedged mode is active, positionSide parameter is mandatory
-    // if( typeof params.positionSide === 'undefined' && Binance.options.hedgeMode ){
-    //     params.positionSide = side === 'BUY' ? 'LONG' : 'SHORT';
-    // }
+    if (
+      typeof params.positionSide === "undefined" &&
+      Binance.options.hedgeMode
+    ) {
+      params.positionSide = side === "BUY" ? "SHORT" : "LONG"
+    }
     // LIMIT STOP MARKET STOP_MARKET TAKE_PROFIT TAKE_PROFIT_MARKET
     // reduceOnly stopPrice
     if (price) {
@@ -668,7 +665,14 @@ let api = function Binance(options = {}) {
     } else {
       if (typeof params.type === "undefined") params.type = "MARKET"
     }
-
+    if (
+      !params.timeInForce &&
+      (params.type.includes("LIMIT") ||
+        params.type === "STOP" ||
+        params.type === "TAKE_PROFIT")
+    ) {
+      params.timeInForce = "GTX" // Post only by default. Use GTC for limit orders.
+    }
     return promiseRequest("v1/order", params, {
       base: fapi,
       type: "TRADE",
@@ -4892,37 +4896,12 @@ let api = function Binance(options = {}) {
       return futuresOrder("SELL", symbol, quantity, false, params)
     },
 
-    futuresMarketPositionOpen: async (
-      side,
-      positionSide,
-      symbol,
-      quantity,
-      params = {}
-    ) => {
-      return futuresOrderBuy(
-        side,
-        positionSide,
-        symbol,
-        quantity,
-        false,
-        params
-      )
+    futuresMarketPositionCloseLong: async (symbol, params = {}) => {
+      return futuresOrderClose("SELL", symbol, false, "true", params)
     },
 
-    futuresMarketPositionClose: async (
-      side,
-      positionSide,
-      symbol,
-      params = {}
-    ) => {
-      return futuresOrderClose(
-        side,
-        positionSide,
-        symbol,
-        false,
-        closePosition,
-        params
-      )
+    futuresMarketPositionCloseShort: async (symbol, params = {}) => {
+      return futuresOrderClose("BUY", symbol, false, "true", params)
     },
 
     futuresOrder, // side symbol quantity [price] [params]
