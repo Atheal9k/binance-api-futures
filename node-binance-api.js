@@ -643,12 +643,15 @@ let api = function Binance(options = {}) {
     symbol,
     quantity,
     closePosition,
+    type,
+    stopPrice,
     price = false,
     params = {}
   ) => {
     params.symbol = symbol
     params.side = side
     params.closePosition = closePosition
+    params.stopPrice = stopPrice
     if (quantity) params.quantity = quantity
     // if in the binance futures setting Hedged mode is active, positionSide parameter is mandatory
     if (
@@ -661,9 +664,9 @@ let api = function Binance(options = {}) {
     // reduceOnly stopPrice
     if (price) {
       params.price = price
-      if (typeof params.type === "undefined") params.type = "LIMIT"
+      if (type === "TAKE_PROFIT_MARKET") params.type = "TAKE_PROFIT_MARKET"
     } else {
-      if (typeof params.type === "undefined") params.type = "MARKET"
+      if (type === "STOP_MARKET") params.type = "STOP_MARKET"
     }
     if (
       !params.timeInForce &&
@@ -4896,12 +4899,38 @@ let api = function Binance(options = {}) {
       return futuresOrder("SELL", symbol, quantity, false, params)
     },
 
-    futuresMarketPositionCloseLong: async (symbol, params = {}) => {
-      return futuresOrderClose("SELL", symbol, false, "true", params)
+    futuresMarketPositionCloseLong: async (
+      symbol,
+      stopPrice,
+      type,
+      params = {}
+    ) => {
+      return futuresOrderClose(
+        "SELL",
+        symbol,
+        stopPrice,
+        false,
+        "true",
+        type,
+        params
+      )
     },
 
-    futuresMarketPositionCloseShort: async (symbol, params = {}) => {
-      return futuresOrderClose("BUY", symbol, false, "true", params)
+    futuresMarketPositionCloseShort: async (
+      symbol,
+      stopPrice,
+      type,
+      params = {}
+    ) => {
+      return futuresOrderClose(
+        "BUY",
+        symbol,
+        stopPrice,
+        false,
+        "true",
+        type,
+        params
+      )
     },
 
     futuresOrder, // side symbol quantity [price] [params]
